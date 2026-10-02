@@ -1,0 +1,1 @@
+"""Mushroom room graduation prototype."""

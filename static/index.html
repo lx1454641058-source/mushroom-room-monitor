@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>菌房 · 环境监测</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script><script defer src="/extensions.js"></script></head>
+<body>
+<header><a class="brand" href="/" aria-label="菌房首页"><span class="brand-icon">菌</span><strong>菌房<span>环境监测与辅助管理</span></strong></a><div class="header-right"><span id="mode" class="badge">连接中</span><span id="connection">等待数据</span></div></header>
+<main>
+<div class="intro"><div><p class="eyebrow">MUSHROOM ROOM / 毕业设计原型</p><h1>看见生长，照料环境。</h1><p class="muted">温湿度与CO2 · 升降温联动 · 限时送液 · 图像辅助识别</p></div><div class="intro-note"><span id="lastUpdate">尚未收到数据</span><small>小型展示箱 · 实物与识别效果待验收</small></div></div>
+<div id="sourceNote" class="notice">正在读取数据来源…</div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<section class="metrics" aria-label="实时数据">
+<article class="metric"><div class="metric-label">环境温度 <span>01</span></div><div class="metric-value"><span id="temperature">—</span><small>℃</small></div><p>实时采集 · 温控需单独启用</p></article>
+<article class="metric humidity"><div class="metric-label">空气湿度 <span>02</span></div><div class="metric-value"><span id="humidity">—</span><small>%RH</small></div><p id="humidityHint">按上下限自动调节</p></article>
+<article class="metric"><div class="metric-label">雾化加湿 <span>03</span></div><div class="device-value" id="mist">未知</div><p id="water">水位状态：未知</p></article>
+<article class="metric"><div class="metric-label">通风风机 <span>04</span></div><div class="device-value" id="fan">未知</div><p id="fanMode">定时通风 / 手动控制</p></article>
+</section>
+<section class="panel extension-panel"><div class="panel-title"><div><p class="eyebrow">CLIMATE</p><h2>二氧化碳与升降温</h2></div><span class="badge">互锁保护</span></div>
+<p id="climateState" role="status">等待扩展模块状态…</p><p id="climateFault" class="small"></p>
+<form id="climateSettings"><div class="form-grid"><label>加热启动下限（℃）<input name="temperature_low" type="number" min="10" max="31" step="0.1" value="18" required></label><label>制冷启动上限（℃）<input name="temperature_high" type="number" min="14" max="35" step="0.1" value="24" required></label><label>CO2通风停止下限（ppm）<input name="co2_low" type="number" min="400" max="4900" value="800" required></label><label>CO2通风启动上限（ppm）<input name="co2_high" type="number" min="500" max="5000" value="1200" required></label></div>
+<div class="button-row"><button id="climateSave" type="submit">保存联动参数</button><button id="climateEnable" class="primary" type="button">启用温控与CO2联动</button><button id="climateDisable" type="button">关闭联动</button></div></form>
+<p class="small">先启动环境控制，再启用联动；改参数前关闭联动。加热与制冷不能同时开启，停机及切换间隔30秒，连续运行最多120秒。CO2超限时强制通风优先于手动关闭；全部停止仍关闭所有输出。以上为工程演示阈值。</p></section>
+<section class="panel extension-panel"><div class="panel-title"><div><p class="eyebrow">VISION</p><h2>成熟度与疑似病害识别</h2></div><span id="visionEngine" class="badge">未配置</span></div>
+<p class="control-caption">选择已保存的照片并填写实际菌种。分析在本机进行，结果用于人工复核，不自动控制设备。</p>
+<div class="form-grid"><label>实际菌种<input id="visionSpecies" maxlength="40" placeholder="例如：平菇；请按实际填写"></label><label>待识别照片<select id="visionPhoto"><option value="">请先拍照或导入</option></select></label></div>
+<div class="button-row"><label>导入本地照片<input id="visionUpload" type="file" accept="image/png,image/jpeg"></label><button id="visionAnalyze" class="primary">分析选定照片</button><button id="visionDownload" disabled>下载识别记录</button></div>
+<pre id="visionResult">尚未进行识别。通用视觉模型未经本项目菌种数据集验证，不能预先承诺准确率。</pre></section>
+<section class="panel liquid-panel"><div class="panel-title"><div><p class="eyebrow">LIQUID TRANSFER</p><h2>抽水与营养液释放</h2></div><span class="badge">单次限时</span></div>
+<p class="control-caption">先全部停止环境控制，再运行一路泵。到时、缺液或满液自动停止；两路泵不能同时运行。演示先用清水，秒数不等于毫升数。</p>
+<p id="liquidState" role="status">等待液体模块状态…</p><p id="liquidLevels" class="small"></p>
+<div class="button-row"><label>抽水时长（秒） <input id="waterSeconds" type="number" min="1" max="30" step="1" value="5"></label><button id="waterRun" data-liquid="water" class="primary">开始抽水</button><button data-liquid-stop="water">停止抽水</button></div>
+<div class="button-row"><label>营养液释放时长（秒） <input id="nutrientSeconds" type="number" min="1" max="10" step="1" value="3"></label><button id="nutrientRun" data-liquid="nutrient" class="primary">释放营养液</button><button data-liquid-stop="nutrient">停止营养液泵</button></div>
+<p class="small">清水泵单次最多30秒，营养液泵最多10秒；停泵后等待5秒。补水后需确认雾化水位正常，再启动环境控制。当前显示控制指令，实际流量需量杯标定。</p></section>
+<section class="panel agent-panel">
+<div class="panel-title"><div><p class="eyebrow">ROOM AGENT</p><h2>蘑菇房智能体</h2></div><span id="agentEngine" class="badge">准备中</span></div>
+<p class="control-caption">用中文查询或控制当前系统。指令发送后直接执行，保护条件仍然有效。一次说清对象与参数。</p>
+<div class="agent-examples"><button data-prompt="查询状态">查询状态</button><button data-prompt="为什么不出雾">为什么不出雾</button><button data-prompt="查看当前参数">查看参数</button><button data-prompt="启动系统">启动系统</button><button data-prompt="通风30秒">通风 30 秒</button><button data-prompt="把湿度下限设为65，上限设为75，然后启动系统">设置湿度并启动</button><button data-prompt="把通风周期设为60秒，每次通风10秒">设置通风周期</button><button data-prompt="生成报告">生成报告</button><button data-prompt="拍照保存">拍照保存</button><button data-prompt="备份数据">备份数据</button><button data-prompt="抽水5秒">抽水5秒</button><button data-prompt="释放营养液3秒">营养液3秒</button></div>
+<div id="agentMessages" class="agent-messages" role="log" aria-label="智能体对话记录" aria-live="polite"><article class="agent-message assistant"><strong>智能体</strong><p>你可以输入“启动系统”“关闭风机”或“把湿度下限设为65，上限设为75”。我会显示实际调用结果，不能跳过缺水保护。摄像头操作需要在当前页面授权。</p></article></div>
+<form id="agentForm" class="agent-form"><label for="agentInput">中文指令</label><textarea id="agentInput" rows="2" maxlength="500" placeholder="例如：把湿度下限设为65，上限设为75，然后启动系统" required></textarea><div class="button-row"><button id="agentSend" class="primary" type="submit">发送并执行</button><button id="agentStop" class="danger" type="button">全部停止（快速）</button><span id="agentProgress" class="small" role="status"></span></div></form>
+<p class="small">快捷按钮只填入文字；点击“发送并执行”才会操作。常用控制和上述参数示例不依赖模型，数字可以修改。Ctrl+Enter 发送；参数使用阿拉伯数字，通风时间以秒为单位。对话按条理解，不根据“它、刚才那个”猜测设备。关闭页面后不会继续定时拍照。</p>
+</section>
+
+
+<div class="main-grid">
+<section class="panel chart-panel"><div class="panel-title"><div><p class="eyebrow">ENVIRONMENT</p><h2>环境变化</h2></div><a href="/api/export.csv" class="text-link">导出 CSV ↗</a></div><div class="legend"><span class="green-dot"></span>湿度 %RH <span class="orange-dot"></span>温度 ℃ <small>最近 300 条记录 · 断线期间不补造数据</small></div><canvas id="chart" aria-label="最近温度和湿度趋势" role="img"></canvas><p id="chartSummary" class="chart-summary">等待采集记录</p></section>
+<section class="panel controls"><div class="panel-title"><div><p class="eyebrow">CONTROL</p><h2>环境控制</h2></div><span id="enabled" class="badge neutral">已停止</span></div><p class="control-caption">启用后自动加湿，并按设定周期通风。</p><div class="button-row"><button id="start" class="primary">启动自动控制</button><button id="stop" class="danger">全部停止</button></div><div id="fault" class="fault">等待设备状态</div><div class="divider"></div><p class="field-label">风机操作</p><div class="button-row compact"><button data-fan="on">开启 30 秒</button><button data-fan="off">保持关闭</button><button data-fan="schedule">恢复定时</button></div><p class="small">所有设备默认关闭。保护停机后，需要人工重新启动。</p><p class="small">显示的是控制指令状态，未安装反馈传感器，不能据此确认电机实际转动。</p></section>
+<section class="panel"><div class="panel-title"><div><p class="eyebrow">SETTINGS</p><h2>控制参数</h2></div><span class="subtle-label">工程演示值</span></div><form id="settings"><div class="form-grid"><label>加湿启动下限（%RH）<input name="humidity_low" type="number" min="20" max="93" step="0.1" value="65" required></label><label>加湿停止上限（%RH）<input name="humidity_high" type="number" min="22" max="95" step="0.1" value="72" required></label><label>通风周期（秒）<input name="fan_period_s" type="number" min="30" max="3600" value="300" required></label><label>每次通风时长（秒）<input name="fan_on_s" type="number" min="1" max="120" value="15" required></label></div><p class="small">默认值用于验证控制功能。实际栽培需按品种和生长阶段另行确定；参数仅在本次开发板运行期间有效。</p><button type="submit" class="secondary" id="save">保存参数</button></form></section>
+<section class="panel report-panel"><div class="panel-title"><div><p class="eyebrow">ASSISTANT</p><h2>运行记录摘要</h2></div><span class="subtle-label">只读分析</span></div><p class="control-caption">从已有数据生成摘要，保留样本编号与记录范围。</p><div class="button-row"><button id="reportButton" class="secondary">生成统计报告</button><button id="aiButton" hidden>本地模型建议</button><a href="/api/report.txt" class="text-link report-download">下载最新报告 ↗</a></div><pre id="report">尚未生成报告。
+
+统计功能不需要联网或大模型。
+照片分析请使用上方“成熟度与疑似病害识别”入口。</pre><p id="aiNote" class="small" hidden>此处仅提供人工核查建议；设备操作请使用上方智能体。数字以统计报告为准。</p></section>
+<section class="panel camera-panel"><div class="panel-title"><div><p class="eyebrow">GROWTH JOURNAL</p><h2>生长影像</h2></div><span class="subtle-label">人工观察</span></div><div class="camera-layout"><div class="camera-view"><video id="video" autoplay playsinline muted hidden></video><div id="cameraPlaceholder"><span class="camera-symbol">▣</span><strong>连接电脑摄像头，记录生长变化</strong><small>点击开启后，浏览器会请求摄像头权限</small></div></div><div class="camera-actions"><button id="cameraStart" class="secondary">开启摄像头</button><button id="capture" disabled>拍照并保存</button><button id="cameraStop" disabled>关闭摄像头</button><label class="check-label"><input id="autoPhoto" type="checkbox" disabled> 每 5 分钟保存一张</label><p id="cameraInfo" class="small">定时拍照需要页面保持打开、电脑保持唤醒。照片保存在本机。</p></div></div><div id="photos" class="photos"><p class="small">尚无照片</p></div></section>
+<section class="panel events-panel"><div class="panel-title"><div><p class="eyebrow">ACTIVITY</p><h2>操作与状态记录</h2></div><span class="subtle-label">最近 30 条</span></div><ol id="events" class="events"><li>等待运行记录</li></ol></section>
+</div>
+<section id="demoPanel" class="demo-panel" hidden><div><h2>答辩演示场景</h2><p>这些按钮只改变模拟环境，不对应真实传感器。</p></div><div class="scenario-buttons"><button data-scenario="low">湿度降低</button><button data-scenario="high">湿度升高</button><button data-scenario="dry">模拟缺水</button><button data-scenario="sensor">传感器异常</button><button data-scenario="offline">模拟断线</button><button data-scenario="water_source_empty">清水储罐缺液</button><button data-scenario="water_target_full">雾化水箱已满</button><button data-scenario="nutrient_source_empty">营养液缺液</button><button data-scenario="nutrient_target_full">接收容器已满</button><button data-scenario="restore">恢复场景</button></div></section>
+<footer><span>菌房 · 蘑菇房环境监测与辅助管理系统</span><span>毕业设计原型 / 本地运行</span></footer>
+</main>
+</body></html>
+

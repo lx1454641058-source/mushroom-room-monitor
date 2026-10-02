@@ -1,0 +1,2 @@
+# Optional. Demo mode needs only the Python standard library.
+pyserial==3.5
